@@ -32,7 +32,25 @@ async def adduser(user : User):
     else:   
         return False   
 
+class UserDetails(BaseModel):
+    username : str
 
+@app.post('/userdetails')
+async def userdetails(user : UserDetails):
+    filter = dict(user)
+    project ={
+        '_id':0,
+        'password' :0,
+    }
+    if client.digitransfer.user.count_documents(dict(user)) ==0 :
+        return False
+    else:
+        try:
+            return dict(client.digitransfer.user.find_one(filter,project))
+        except Exception as e:
+            print(str(e))
+            return False
+    return True
  
 class Login(BaseModel):
     username : str
@@ -47,9 +65,16 @@ async def login(login : Login):
 class Money(BaseModel):
     username : str
     credit : int
+    transactionid: str
 
 @app.post('/addmoney')
 async def addmoney(money : Money):
+    try:
+        client.digitransfer.addmoneydata.insert_one(dict(money))
+    except Exception as e:
+        print(str(e))
+        return False
+#creating filter for retrieving sender wallet balance
     filter = {
         'username' : money.username
     }
@@ -64,11 +89,55 @@ async def addmoney(money : Money):
     }
     try : 
         client.digitransfer.user.find_one_and_update(filter,update)
-        return True
     except Exception as e :
         return False
+    return True
 
 
+class Transfer(BaseModel):
+    sender : str
+    receiver : str
+    fund : int =0
+@app.post('/transfer')
+async def transfer(transfer :  Transfer):
+    filter = {
+        'username' : transfer.sender
+    }
+    project = {
+        '_id':0,
+        'wallet':1
+    }
+    try :
+        wallet = client.digitransfer.user.find_one(filter,project)['wallet'] - transfer.fund
+    except Exception as e:
+        print (str(e))
+        return False
+    
+    update = {
+        '$set': {'wallet': wallet}
+    }
+    try : 
+        client.digitransfer.user.find_one_and_update(filter,update)
+    except Exception as e:
+        print(str(e))
+        return False
+    
+    filter = {
+        'username' :transfer.receiver
+    }
+    try :
+        wallet = client.digitransfer.user.find_one(filter,project) ['wallet'] + transfer.fund
+    except Exception as e:
+        print(str(e))
+        return False
+    
+    try:
+        client.digitransfer.user.find_one_and_update(filter,update)
+    except Exception as e:
+        print(str(e))
+        return False
+
+    return True
     
 if __name__ == "__main__":
     uvicorn.run("server:app", host="0.0.0.0", port=8000, reload = True ,debug = True)
