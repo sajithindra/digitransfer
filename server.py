@@ -70,7 +70,7 @@ class Money(BaseModel):
 @app.post('/addmoney')
 async def addmoney(money : Money):
     try:
-        client.digitransfer.addmoneydata.insert_one(dict(money))
+        client.digitransfer.payment.insert_one(dict(money))
     except Exception as e:
         print(str(e))
         return False
@@ -100,6 +100,12 @@ class Transfer(BaseModel):
     fund : int =0
 @app.post('/transfer')
 async def transfer(transfer :  Transfer):
+    try:
+        client.digitransfer.transfer.insert_one(dict(transfer))
+    except Exception as e:
+        print(str(e))
+        return False
+    
     filter = {
         'username' : transfer.sender
     }
@@ -107,6 +113,7 @@ async def transfer(transfer :  Transfer):
         '_id':0,
         'wallet':1
     }
+
     try :
         wallet = client.digitransfer.user.find_one(filter,project)['wallet'] - transfer.fund
     except Exception as e:
@@ -116,15 +123,18 @@ async def transfer(transfer :  Transfer):
     update = {
         '$set': {'wallet': wallet}
     }
+
     try : 
         client.digitransfer.user.find_one_and_update(filter,update)
     except Exception as e:
         print(str(e))
         return False
     
+
     filter = {
         'username' :transfer.receiver
     }
+
     try :
         wallet = client.digitransfer.user.find_one(filter,project) ['wallet'] + transfer.fund
     except Exception as e:

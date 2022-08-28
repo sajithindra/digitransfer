@@ -14,7 +14,7 @@
                     <v-text-field v-model="username" label="username"></v-text-field>
                 </v-row>
                 <v-row>
-                    <v-text-field v-model="password" label="password"></v-text-field> 
+                    <v-text-field v-model="password" label="password" type="password"></v-text-field> 
                 </v-row>
                 <v-row>
                     <v-btn text block @click="createuser"> Sign Up </v-btn>

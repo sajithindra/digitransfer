@@ -1,5 +1,6 @@
 <template>
 <v-container >
+    <v-btn @click="logout" ><v-icon>mdi-logout-variant</v-icon></v-btn>
     <v-container class="form" v-if="showinfo">
         <v-container>
             <v-sheet>
@@ -35,8 +36,15 @@
                     <v-text-field v-model="credit" label="Amount"></v-text-field>
                 </v-row>
                 <v-row>
-                    <v-btn text block color="teal" @click="addfundupdate">Submit </v-btn>
+                    <v-col>
+                        <v-btn text block color="teal" @click="addfundupdate">Submit </v-btn>
+                    </v-col>
+                    <v-col>
+                        <v-btn text block color="red" @click="goback">Go Back</v-btn>
+                    </v-col>
+                    
                 </v-row>
+
             </v-col>
         </v-form>
 </v-container>
@@ -52,7 +60,12 @@
                 <v-text-field v-model="fund" label="Amount"></v-text-field>
             </v-row>
             <v-row>
-                <v-btn text block color="teal" @click="sendfundupdate"> Send</v-btn>
+                <v-col>
+                     <v-btn text block color="teal" @click="sendfundupdate"> Send</v-btn>
+                </v-col>
+               <v-col>
+                    <v-btn text block color="red" @click="goback">Go Back</v-btn>
+               </v-col>
             </v-row>
         </v-col>
     </v-form>
@@ -121,13 +134,19 @@ export default{
                 fund : this.fund,
             }
             let res = await this.$axios.post(url,tranfer);
+            
             if (res.data == true) {
                 this.showinfo=true;
                 this.sendfundshow =false;
             }
             window.location.reload();
         },
-        
+        async logout() {
+            this.$router.push('/');
+        },
+        async goback() {
+            window.location.reload();
+        },
     }
 }
 </script>
