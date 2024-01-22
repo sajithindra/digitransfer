@@ -98,6 +98,7 @@ class Transfer(BaseModel):
     sender : str
     receiver : str
     fund : int =0
+
 @app.post('/transfer')
 async def transfer(transfer :  Transfer):
     try:
@@ -131,18 +132,25 @@ async def transfer(transfer :  Transfer):
         return False
     
 
-    filter = {
+    filter_re = {
         'username' :transfer.receiver
+    }
+    project = {
+        '_id':0,
+        'wallet':1
     }
 
     try :
-        wallet = client.digitransfer.user.find_one(filter,project) ['wallet'] + transfer.fund
+        wallet = client.digitransfer.user.find_one(filter_re,project) ['wallet'] + transfer.fund
     except Exception as e:
         print(str(e))
         return False
+    update_re = {
+        '$set': {'wallet': wallet}
+    }
     
     try:
-        client.digitransfer.user.find_one_and_update(filter,update)
+        client.digitransfer.user.find_one_and_update(filter_re,update_re)
     except Exception as e:
         print(str(e))
         return False
@@ -150,4 +158,4 @@ async def transfer(transfer :  Transfer):
     return True
     
 if __name__ == "__main__":
-    uvicorn.run("server:app", host="0.0.0.0", port=8000, reload = True ,debug = True)
+    uvicorn.run("server:app", host="0.0.0.0", port=8000, reload = True )
